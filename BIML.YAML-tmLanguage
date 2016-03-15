@@ -1,0 +1,795 @@
+# [PackageDev] target_format: plist, ext: tmLanguage
+---
+name: BIML
+scopeName: source.biml
+fileTypes: [biml, csbiml, sqlbiml]
+foldingStartMarker: ^\s*#\s*region|^\s*/\*|^(?![^{]*?//|[^{]*?/\*(?!.*?\*/.*?\{)).*?\{\s*($|//|/\*(?!.*?\*/.*\S))|^\s*<#
+foldingStopMarker: ^\s*#\s*endregion|^\s*\*/|^\s*\}|^\s*#>
+uuid: d37386b9-9758-409b-953e-c37244c9b498
+
+patterns:
+- include: '#csharp'
+- include: '#xml'
+- include: '#biml'
+- include: '#tsql'
+
+repository:
+  csharp:
+    patterns:
+    - include: '#csharp-core'
+
+  xml:
+    patterns:
+    - include: '#xml-literal-keywords'
+    - include: '#xml-core'
+
+  biml:
+    patterns:
+    - include: '#biml-expression-block'
+    - include: '#biml-class-block'
+    - include: '#biml-directive-block'
+    - include: '#biml-control-block'
+    - include: '#biml-direct-input'
+    - include: '#biml-comment-block'
+
+  tsql:
+    patterns:
+    - {include: '#tsql_comments'}
+    - {include: '#tsql_label_goto'}
+    - {include: '#tsql_table_alias'}
+    - {include: '#tsql_alias_as'}
+    - {include: '#tsql_all'}
+    - {include: '#tsql_strings'}
+    - {include: '#tsql_regexps'}
+
+  # ----------------------------------------- #
+  # ---             BIML                  --- #
+  # ----------------------------------------- #
+  biml-expression-block:
+    patterns:
+    - name: expression.block.biml
+      begin: (<#=)
+      beginCaptures:
+        '1': {name: punctuation.definition.expressionblock.biml}
+      end: (#>)
+      endCaptures:
+        '1': {name: punctuation.definition.expressionblock.biml}
+      patterns:
+      - {include: '#csharp'}
+
+  biml-control-block:
+    patterns:
+    - name: control.block.biml
+      begin: (<#[^@=\+\*])
+      beginCaptures:
+        '1': {name: punctuation.definition.controlblock.biml}
+      end: (#>)
+      endCaptures:
+        '1': {name: punctuation.definition.controlblock.biml}
+      patterns:
+      - {include: '#csharp'}
+      - include: $self
+
+  biml-directive-block:
+    patterns:
+    - name: directive.block.biml
+      begin: (<#@)
+      beginCaptures:
+        '1': {name: punctuation.definition.directiveblock.biml}
+      end: (#>)
+      endCaptures:
+        '1': {name: punctuation.definition.directiveblock.biml}
+      patterns:
+      - {include: '#tagStuff'}
+
+  biml-class-block:
+    patterns:
+    - name: class.block.biml
+      begin: (<#\+)
+      beginCaptures:
+        '1': {name: punctuation.definition.classblock.biml}
+      end: (#>)
+      endCaptures:
+        '1': {name: punctuation.definition.classblock.biml}
+      patterns:
+      - {include: '#csharp'}
+
+  biml-comment-block:
+    patterns:
+    - name: comment.block.biml
+      begin: (<#\*)
+      beginCaptures:
+        '1': {name: punctuation.definition.commentblock.biml}
+      end: (\*#>)
+      endCaptures:
+        '1': {name: punctuation.definition.commentblock.biml}
+      
+  biml-direct-input:
+    patterns:
+    - name: directinput.block.biml
+      begin: (<DirectInput>)
+      beginCaptures:
+        '1': {name: punctuation.definition.directinputblock.biml}
+      end: (</DirectInput>)
+      endCaptures:
+        '1': {name: punctuation.definition.directinputblock.biml}
+      patterns:
+      - {include: '#biml-expression-block'}
+      - {include: '#biml-control-block'}
+      - {include: '#tsql' }
+
+      
+      
+
+
+  # ----------------------------------------- #
+  # ---             C#                    --- #
+  # ----------------------------------------- #
+
+  csharp-core:
+    patterns:
+    - include: '#csharp-expression'
+
+    - include: '#csharp-comments'
+    - include: '#csharp-brackets'
+
+  # TODO: preprocessor scope
+  # TODO: Get common class names
+  
+  csharp-expression:
+    patterns:
+    - include: '#csharp-literal-keywords'
+    - include: '#csharp-constants'
+
+  ###
+  ### Literals
+  ###
+
+  csharp-literal-keywords:
+    patterns:
+    - include: '#csharp-literal-keywords-statements'
+    - include: '#csharp-literal-for'
+    - include: '#csharp-literal-switch'
+    - include: '#csharp-literal-keywords-types'
+
+    - name: keyword.linq.source.csharp
+      match: (?<!\.)\b(ascending|by|descending|equals|from|group|in|into|join|let|on|orderby|select|where)\b
+    
+    - name: keyword.operator.source.csharp
+      match: (?<!\.)\b(as|await|is|sizeof|stackalloc|typeof)\b
+
+    - name: keyword.modifiers.source.csharp
+      match: (?<!\.)\b(abstract|async|const|event|extern|internal|new|override|partial|private|protected|public|readonly|sealed|static|unsafe|virtual|volatile)\b
+
+    - name: keyword.method.parameters.csharp
+      match: (?<!\.)\b(out|params|ref)\b
+
+    - name: keyword.namespace.source.csharp
+      match: (?<!\.)\b(alias|extern|namespace|using)\b
+
+    - name: keyword.conversion.source.csharp
+      match: (?<!\.)\b(explicit|implicit|operator)\b
+
+    - name: keyword.access.source.csharp
+      match: (?<!\.)\b(base|this)\b
+
+    - name: keyword.literal.source.csharp
+      match: (?<!\.)\b(default|false|null|true)\b
+
+    - name: keyword.contextual.source.csharp
+      match: (?<!\.)\b(add|get|global|remove|set|value|yield)\b
+
+    - name: keyword.preprocessor.source.csharp
+      match: (?<!\.)#\s*\b(if|else|elif|endif|define|undef|warning|error|line|region|endregion|pragma|pragma warning|pragma checksum)\b
+
+  csharp-literal-keywords-statements:
+    patterns:
+    - name: keyword.control.other.csharp
+      match: (?<!\.)\b(fixed|lock)\b
+
+    - name: keyword.statement.selection.csharp
+      match: (?<!\.)\b(if|else)\b
+
+    - name: keyword.statement.exception.csharp
+      match: (?<!\.)\b(catch|finally|throw|try)\b
+
+    - name: keyword.statement.iteration.csharp
+      match: (?<!\.)\b(do|while)\b
+
+    - name: keyword.statement.jump.csharp
+      match: (?<!\.)\b(break|continue|goto|return)\b
+
+    - name: keyword.statement.checked.csharp
+      match: (?<!\.)\b(checked|unchecked)\b
+
+  csharp-literal-keywords-types:
+    patterns:
+    - name: keyword.types.value.csharp
+      match: (?<!\.)\b(bool|byte|char|decimal|double|enum|float|int|long|sbyte|short|struct|uint|ulong|ushort)\b
+
+    - name: keyword.types.reference.csharp
+      match: (?<!\.)\b(class|delegate|dynamic|interface|object|string)\b
+
+    - name: keyword.types.other.csharp
+      match: (?<!\.)\b(var|void)\b
+
+
+  csharp-literal-for:
+    patterns:
+    - name: meta.for.csharp
+      begin: (?<!\.)\b(for|foreach)\b
+      beginCaptures:
+        '1': {name: keyword.statement.iteration.csharp}
+      end: \)
+      endCaptures:
+        '0': {name: meta.brace.round.csharp}
+      patterns:
+      - begin: \(
+        beginCaptures:
+          '0': {name: meta.brace.round.csharp}
+        end: (?=\))
+        patterns:
+        - include: '#csharp-expression'
+        
+
+  csharp-literal-switch:
+    patterns:
+    - name: meta.switch.csharp
+      begin: (?<!\.)\b(switch)\b
+      beginCaptures:
+        '1': {name: keyword.statement.selection.csharp}
+      end: \}
+      endCaptures:
+        '0': {name: meta.brace.curly.csharp}
+      patterns:
+      - include: '#round-brackets'
+      - begin: \{
+        beginCaptures:
+          '0': {name: meta.brace.curly.csharp}
+        end: (?=})
+        patterns:
+        - begin: (?<!\.)\b(case|default)\b
+          beginCaptures:
+            '1': {name: keyword.statement.selection.csharp}
+          end: (?=:)
+          patterns:
+          - include: '#csharp-expression'
+        - include: $self
+
+  csharp-constants:
+    patterns:
+    - {match: '\b((0(x|X)[0-9a-fA-F]*)|(([0-9]+\.?[0-9]*)|(\.[0-9]+))((e|E)(\+|-)?[0-9]+)?)(L|l|UL|ul|u|U|F|f|ll|LL|ull|ULL)?\b',
+      name: constant.numeric.source.cs}
+    - captures:
+        '0': {name: punctuation.definition.string.begin.source.cs}
+      match: '@"([^"]|"")*"'
+      name: string.quoted.double.literal.source.cs
+    - begin: '"'
+      beginCaptures:
+        '0': {name: punctuation.definition.string.begin.source.cs}
+      end: '"'
+      endCaptures:
+        '0': {name: punctuation.definition.string.end.source.cs}
+      name: string.quoted.double.source.cs
+      patterns:
+      - {match: \\., name: constant.character.escape.source.cs}
+    - begin: ''''
+      beginCaptures:
+        '0': {name: punctuation.definition.string.begin.source.cs}
+      end: ''''
+      endCaptures:
+        '0': {name: punctuation.definition.string.end.source.cs}
+      name: string.quoted.single.source.cs
+      patterns:
+      - {match: \\., name: constant.character.escape.source.cs}
+
+  ###
+  ### Braces and Brackets
+  ###
+  csharp-brackets:
+    patterns:
+    - include: '#csharp-brackets-round'
+    - include: '#csharp-brackets-square'
+    - include: '#csharp-brackets-curly'
+
+  csharp-brackets-round:
+    patterns:
+    - name: meta.group.braces.round
+      begin: \(
+      beginCaptures:
+        '0': {name: meta.brace.round.csharp}
+      end: \)
+      endCaptures:
+        '0': {name: meta.brace.round.csharp}
+      patterns:
+      - include: '#csharp-expression'
+      - include: $self
+
+  csharp-brackets-square:
+    patterns:
+    - name: meta.group.braces.square
+      begin: \[
+      beginCaptures:
+        '0': {name: meta.brace.square.csharp}
+      end: \]
+      endCaptures:
+        '0': {name: meta.brace.square.csharp}
+      patterns:
+      - include: '#csharp-expression'
+      - include: $self
+
+  # csharp-brackets-curly:
+  #   patterns:
+  #   - name: meta.group.braces.curly
+  #     begin: \{
+  #     beginCaptures:
+  #       '1': {name: meta.brace.curly.csharp}
+  #     end: \}
+  #     endCaptures:
+  #       '1': {name: meta.brace.curly.csharp}
+  #     patterns:
+  #     - include: '#csharp-expression'
+  #     - {include: '#biml'}
+  #     - include: $self
+
+  ###
+  ### Comments
+  ###
+  csharp-comments:
+    patterns:
+    - name: comment.block.documentation.csharp
+      begin: /\*\*(?!/)
+      end: \*/
+      captures:
+        '0': {name: punctuation.definition.comment.csharp}
+
+    - name: comment.block.csharp
+      begin: /\*
+      end: \*/
+      captures:
+        '0': {name: punctuation.definition.comment.csharp}
+
+    - name: comment.line.double-slash.csharp
+      match: (//).*$\n?
+      captures:
+        '1': {name: punctuation.definition.comment.csharp}
+
+
+
+  # ----------------------------------------- #
+  # ---             XML                   --- #
+  # ----------------------------------------- #
+  xml-core:
+    patterns:
+    - begin: (<\?)\s*([-_a-zA-Z0-9]+)
+      captures:
+        '1': {name: punctuation.definition.tag.begin.xml}
+        '2': {name: entity.name.tag.xml}
+      end: (\?>)
+      name: meta.tag.preprocessor.xml
+      patterns:
+      - {match: ' ([a-zA-Z-]+)', name: entity.other.attribute-name.xml}
+      - {include: '#doublequotedString'}
+      - {include: '#singlequotedString'}
+      - {include: '#biml-expression-block'}
+
+    - begin: (<!)(DOCTYPE)\s+([:a-zA-Z_][:a-zA-Z0-9_.-]*)
+      captures:
+        '1': {name: punctuation.definition.tag.begin.xml}
+        '2': {name: keyword.doctype.xml}
+        '3': {name: variable.documentroot.xml}
+      end: \s*(>)
+      name: meta.tag.sgml.doctype.xml
+      patterns:
+      - {include: '#internalSubset'}
+
+    - begin: <[!%]--
+      captures:
+        '0': {name: punctuation.definition.comment.xml}
+      end: --%?>
+      name: comment.block.xml
+
+    - begin: (<)((?:([-_a-zA-Z0-9]+)((:)))?([-_a-zA-Z0-9:]+))(?=(\s[^>]*)?></\2>)
+      beginCaptures:
+        '1': {name: punctuation.definition.tag.begin.xml}
+        '3': {name: entity.name.tag.namespace.xml}
+        '4': {name: entity.name.tag.xml}
+        '5': {name: punctuation.separator.namespace.xml}
+        '6': {name: entity.name.tag.localname.xml}
+      end: (>)(<)(/)(?:([-_a-zA-Z0-9]+)((:)))?([-_a-zA-Z0-9:]+)(>)
+      endCaptures:
+        '1': {name: punctuation.definition.tag.end.xml}
+        '2': {name: punctuation.definition.tag.begin.xml meta.scope.between-tag-pair.xml}
+        '3': {name: punctuation.definition.tag.begin.xml}
+        '4': {name: entity.name.tag.namespace.xml}
+        '5': {name: entity.name.tag.xml}
+        '6': {name: punctuation.separator.namespace.xml}
+        '7': {name: entity.name.tag.localname.xml}
+        '8': {name: punctuation.definition.tag.end.xml}
+      name: meta.tag.no-content.xml
+      patterns:
+      - {include: '#tagStuff'}
+
+    - begin: (?!</?DirectInput>)(</?)(?:([-_a-zA-Z0-9]+)((:)))?([-_a-zA-Z0-9:]+)
+      captures:
+        '1': {name: punctuation.definition.tag.begin.xml}
+        '2': {name: entity.name.tag.namespace.xml}
+        '3': {name: entity.name.tag.xml}
+        '4': {name: punctuation.separator.namespace.xml}
+        '5': {name: entity.name.tag.localname.xml}
+      end: (/?>)
+      endCaptures:
+        '1': {name: punctuation.definition.tag.end.xml}
+      name: meta.tag.xml
+      patterns:
+      - {include: '#tagStuff'}
+
+    - {include: '#entity'}
+    - {include: '#bare-ampersand'}
+    - {include: '#Cdata'}
+
+
+  Cdata:
+    patterns:
+    - name: string.cdata.xml
+      begin: (<!\[CDATA\[)
+      beginCaptures:
+        '1': {name: punctuation.definition.cdata.xml}
+      end: (]]>)
+      endCaptures:
+        '1': {name: punctuation.definition.cdata.xml}
+      patterns:
+      - {include: '#biml'}
+      - {include: '#csharp'}
+      - {include: '#tsql'}
+
+  EntityDecl:
+    begin: (<!)(ENTITY)\s+(%\s+)?([:a-zA-Z_][:a-zA-Z0-9_.-]*)(\s+(?:SYSTEM|PUBLIC)\s+)?
+    captures:
+      '1': {name: punctuation.definition.tag.begin.xml}
+      '2': {name: keyword.entity.xml}
+      '3': {name: punctuation.definition.entity.xml}
+      '4': {name: variable.entity.xml}
+      '5': {name: keyword.entitytype.xml}
+    end: (>)
+    patterns:
+    - {include: '#doublequotedString'}
+    - {include: '#singlequotedString'}
+
+
+  bare-ampersand: {match: '&', name: invalid.illegal.bad-ampersand.xml}
+
+  doublequotedString:
+    begin: '"'
+    beginCaptures:
+      '0': {name: punctuation.definition.string.begin.xml}
+    end: '"'
+    endCaptures:
+      '0': {name: punctuation.definition.string.end.xml}
+    name: string.quoted.double.xml
+    patterns:
+    - {include: '#entity'}
+    - {include: '#bare-ampersand'}
+    - {include: '#biml-expression-block'}
+  
+  entity:
+    captures:
+      '1': {name: punctuation.definition.constant.xml}
+      '3': {name: punctuation.definition.constant.xml}
+    match: (&)([:a-zA-Z_][:a-zA-Z0-9_.-]*|#[0-9]+|#x[0-9a-fA-F]+)(;)
+    name: constant.character.entity.xml
+    patterns:
+    - {include: '#biml'}
+  
+  internalSubset:
+    begin: (\[)
+    captures:
+      '1': {name: punctuation.definition.constant.xml}
+    end: (\])
+    name: meta.internalsubset.xml
+    patterns:
+    - {include: '#EntityDecl'}
+    - {include: '#parameterEntity'}
+
+  parameterEntity:
+    captures:
+      '1': {name: punctuation.definition.constant.xml}
+      '3': {name: punctuation.definition.constant.xml}
+    match: (%)([:a-zA-Z_][:a-zA-Z0-9_.-]*)(;)
+    name: constant.character.parameter-entity.xml
+
+  singlequotedString:
+    begin: ''''
+    beginCaptures:
+      '0': {name: punctuation.definition.string.begin.xml}
+    end: ''''
+    endCaptures:
+      '0': {name: punctuation.definition.string.end.xml}
+    name: string.quoted.single.xml
+    patterns:
+    - {include: '#entity'}
+    - {include: '#bare-ampersand'}
+    - {include: '#biml-expression-block'}
+
+  tagStuff:
+    patterns:
+    - captures:
+        '1': {name: entity.other.attribute-name.namespace.xml}
+        '2': {name: entity.other.attribute-name.xml}
+        '3': {name: punctuation.separator.namespace.xml}
+        '4': {name: entity.other.attribute-name.localname.xml}
+      match: ' (?:([-_a-zA-Z0-9]+)((:)))?([-_a-zA-Z0-9]+)='
+    - {include: '#doublequotedString'}
+    - {include: '#singlequotedString'}
+    - {include: '#biml-expression-block'}
+
+
+
+##############################################
+  tsql_all:
+    patterns:
+    - {match: '(?i:^go\s*$)', name: support.constant.go.other.sql}
+    - captures:
+        '1': {name: keyword.other.create.sql}
+        '2': {name: keyword.other.sql}
+        '5': {name: entity.name.function.sql}
+      match: (?i:^\s*(create)\s+(aggregate|conversion|database|domain|function|group|(unique\s+)?index|language|operator
+        class|operator|rule|schema|sequence|table|tablespace|trigger|type|user|view|proc|procedure)\s+)([#'"`]?)(\w+)
+      name: meta.create.sql
+    - captures:
+        '1': {name: keyword.other.create.sql}
+        '2': {name: keyword.other.sql}
+      match: (?i:^\s*(drop)\s+(aggregate|conversion|database|domain|function|group|index|language|operator
+        class|operator|rule|schema|sequence|table|tablespace|trigger|type|user|view|proc|procedure))
+      name: meta.drop.sql
+    - captures:
+        '1': {name: keyword.other.create.sql}
+        '2': {name: keyword.other.table.sql}
+        '3': {name: entity.name.function.sql}
+        '4': {name: keyword.other.cascade.sql}
+      match: (?i:\s*(drop)\s+(table)\s+(\w+)(\s+cascade)?\b)
+      name: meta.drop.sql
+    - captures:
+        '1': {name: keyword.other.create.sql}
+        '2': {name: keyword.other.table.sql}
+      match: (?i:^\s*(alter)\s+(aggregate|conversion|database|domain|function|group|index|language|operator
+        class|operator|rule|schema|sequence|table|tablespace|trigger|type|user|view|proc|procedure)\s+)
+      name: meta.alter.sql
+    - captures:
+        '1': {name: storage.type.sql}
+        '10': {name: constant.numeric.sql}
+        '11': {name: storage.type.sql}
+        '12': {name: storage.type.sql}
+        '13': {name: storage.type.sql}
+        '14': {name: constant.numeric.sql}
+        '15': {name: storage.type.sql}
+        '2': {name: storage.type.sql}
+        '3': {name: constant.numeric.sql}
+        '4': {name: storage.type.sql}
+        '5': {name: constant.numeric.sql}
+        '6': {name: storage.type.sql}
+        '7': {name: constant.numeric.sql}
+        '8': {name: constant.numeric.sql}
+        '9': {name: storage.type.sql}
+      match: "(?xi)\n\n\t\t\t\t# normal stuff, capture 1\n\t\t\t\t \\b[^\\.](BIDENT|BBRIEF|BCOMMENT|BBOOL|bigint|numeric|bit|smallint|decimal|smallmoney|int|tinyint|money|float|real|date|datetimeoffset|datetime2|smalldatetime|datetime|time|char|varchar|text|nchar|nvarchar|ntext|binary|varbinary|image|cursor|timestamp|hierarchyid|uniqueidentifier|sysname|sql_variant|xml|table|geography|geometry)\\\
+        b\n\n\t\t\t\t# numeric suffix, capture 2 + 3i\n\t\t\t\t|\\b(bit\\svarying|character\\\
+        s(?:varying)?|tinyint|var\\schar|float|interval)\\((\\d+)\\)\n\n\t\t\t\t# optional\
+        \ numeric suffix, capture 4 + 5i\n\t\t\t\t|\\b(char|varchar\\d?)\\b(?:\\((\\d+)\\\
+        ))?\n\n\t\t\t\t# special case, capture 6 + 7i + 8i\n\t\t\t\t|\\b(numeric)\\b(?:\\\
+        ((\\d+),(\\d+)\\))?\n\n\t\t\t\t# special case, captures 9, 10i, 11\n\t\t\t\t|\\\
+        b(times)(?:\\((\\d+)\\))(\\swithoutstimeszone\\b)?\n\n\t\t\t\t# special case,\
+        \ captures 12, 13, 14i, 15\n\t\t\t\t|\\b(timestamp)(?:(s)\\((\\d+)\\)(\\swithoutstimeszone\\\
+        b)?)?\n\n\t\t\t"
+    - {match: '(?i:\b((?:primary|foreign)\s+key|references|on\sdelete(\s+cascade)?|check|constraint)\b)',
+      name: storage.modifier.sql}
+    - {match: \b\d+\b, name: constant.numeric.sql}
+    - {match: '(?<=^|[^\w\.@])@\w+', name: variable.sql}
+    - {match: \w+\., name: entity.name.alias.sql}
+    - {match: '(?i:\b(select(\s+distinct)?|insert\s+(ignore\s+)?into|insert|update|with|delete|from|join|set|print|declare|open|close|fetch|deallocate|cursor|for|while|case|when|then|between|is|exec|execute|where|group\sby|or|like|and|not|exists|union(\s+all)?|having|order\sby|over|limit|(inner|cross)\s+join|(outer|cross)\s+apply|straight_join|(left|right)(\s+outer)?\s+join|natural(\s+(left|right)(\s+outer)?)?\s+join)\b)',
+      name: keyword.other.DML.sql}
+    - {match: '(?i:\b(null)\b)', name: constant.language.sql}
+    - {match: '(?i:\b(on|((is\s+)?not\s+)?null)\b)', name: keyword.other.DDL.create.II.sql}
+    - {match: '(?i:\bvalues\b)', name: keyword.other.DML.II.sql}
+    - {comment: 'Reserved keywords: https://msdn.microsoft.com/en-us/library/ms189822.aspx',
+      match: '(?i:\b(add|external|procedure|all|fetch|public|alter|file|raiserror|and|fillfactor|read|any|for|readtext|as|foreign|reconfigure|asc|freetext|references|authorization|freetexttable|replication|backup|from|restore|begin|full|restrict|between|function|return|break|goto|revert|browse|grant|revoke|bulk|group|right|by|having|rollback|cascade|holdlock|rowcount|case|identity|rowguidcol|check|identity_insert|rule|checkpoint|identitycol|save|close|if|schema|clustered|in|securityaudit|coalesce|index|select|collate|inner|semantickeyphrasetable|column|insert|semanticsimilaritydetailstable|commit|intersect|semanticsimilaritytable|compute|into|session_user|constraint|is|set|contains|join|setuser|containstable|key|shutdown|continue|kill|some|convert|left|statistics|create|like|system_user|cross|lineno|table|current|load|tablesample|current_date|merge|textsize|current_time|national|then|current_timestamp|nocheck|to|current_user|nonclustered|top|cursor|not|tran|database|null|transaction|dbcc|nullif|trigger|deallocate|of|truncate|declare|off|try_convert|default|offsets|tsequal|delete|on|union|deny|open|unique|desc|opendatasource|unpivot|disk|openquery|update|distinct|openrowset|updatetext|distributed|openxml|use|double|option|user|drop|or|values|dump|order|varying|else|outer|view|end|over|waitfor|errlvl|percent|when|escape|pivot|where|except|plan|while|exec|precision|with|execute|primary|within
+        group|exists|print|writetext|exit|proc)\b)', name: keyword.other.reserved.sql}
+    - {comment: 'Control-of-flow keywords: https://msdn.microsoft.com/en-us//library/ms174290.aspx',
+      match: '(?i:\b(BEGIN|END|RETURN|break|THROW|CONTINUE|TRY|CATCH|GOTO|WAITFOR|IF|ELSE|WHILE)\b)',
+      name: keyword.other.reserved.sql}
+    - {comment: 'Label:', match: '^(.+):\s*$', name: support.label.sql}
+    - {match: '(?i:\b(begin\s+try|begin\s+catch|end\s+try|end\s+catch|begin\s+tran|begin\s+transaction|begin(\s+work)?|raiserror(\s+work)?|rollback\s+tran|commit(\s+work)?|rollback(\s+work)?|if(\s+work)?|goto|end(\s+work)?|else(\s+work)?|return)\b)',
+      name: keyword.other.LUW.sql}
+    - {match: '(?i:\b(grant(\swith\sgrant\soption)?|revoke)\b)', name: keyword.other.authorization.sql}
+    - {match: '(?i:\bin\b)', name: keyword.other.data-integrity.sql}
+    - {match: '(?i:^\s*(comment\s+on\s+(table|column|aggregate|constraint|database|domain|function|index|operator|rule|schema|sequence|trigger|type|view))\s+.*?\s+(is)\s+)',
+      name: keyword.other.object-comments.sql}
+    - {match: '(?i)\bAS\b', name: keyword.other.alias.sql}
+    - {match: '(?i)\b(DESC|ASC)\b', name: keyword.other.order.sql}
+    - {match: \*, name: keyword.operator.star.sql}
+    - {match: '[!<>]?=|<>|<|>', name: keyword.operator.comparison.sql}
+    - {match: -|\+|/, name: keyword.operator.math.sql}
+    - {match: \|\|, name: keyword.operator.concatenator.sql}
+    - {comment: 'Rowset functions: https://msdn.microsoft.com/en-us/library/ms187957.aspx',
+      match: '(?i)\b(opendatasource|openrowset|openquery|openxml)\b', name: support.function.rowset.sql}
+    - {comment: 'Aggregate Functions: https://msdn.microsoft.com/en-us/library/ms173454.aspx',
+      match: '(?i)\b(avg|min|checksum_agg|sum|count|stdev|count_big|stdevp|grouping|var|grouping_id|varp|max)\b',
+      name: support.function.aggr.sql}
+    - {comment: 'Ranking Functions: https://msdn.microsoft.com/en-us/library/ms189798.aspx',
+      match: '(?i)\b(rank|ntile|dense_rank|row_number)\b', name: support.function.ranking.sql}
+    - {comment: 'Configuration Functions: https://msdn.microsoft.com/en-us/library/ms173823.aspx',
+      match: '(?i)@@\b(datefirst|options|dbts|remserver|langid|servername|language|servicename|lock_timeout|spid|max_connections|textsize|max_precision|version|nestlevel)\b',
+      name: support.function.config.sql}
+    - {comment: 'Conversion Functions: https://msdn.microsoft.com/en-us/library/hh231076.aspx',
+      match: '(?i)\b(cast|convert|parse|try_cast|try_convert|try_parse)\b', name: support.function.rowset.sql}
+    - {comment: 'Cursor Functions: https://msdn.microsoft.com/en-us/library/ms186285.aspx',
+      match: '(?i)(@@\b(cursor_rows|fetch_status)|cursor_status)\b', name: support.function.cursor.sql}
+    - {comment: 'Date and time Functions: https://msdn.microsoft.com/en-us/library/ms186724.aspx',
+      match: '(?i)\b(sysdatetime|sysdatetimeoffset|sysutcdatetime|current_timestamp|getdate|getutcdate|datename|datepart|day|month|year|datefromparts|datetime2fromparts|datetimefromparts|datetimeoffsetfromparts|smalldatetimefromparts|timefromparts|datediff|dateadd|eomonth|switchoffset|todatetimeoffset|isdate)|@@\b(datefirst|language)\b',
+      name: support.function.datetime.sql}
+    - {comment: 'Logical Functions: https://msdn.microsoft.com/en-us/library/hh213226.aspx',
+      match: '(?i)\b(choose|iif)\b', name: support.function.logical.sql}
+    - {comment: 'Mathematical Functions: https://msdn.microsoft.com/en-us/library/ms177516.aspx',
+      match: '(?i)\b(abs|degrees|rand|acos|exp|round|asin|floor|sign|atan|log|sin|atn2|log10|sqrt|ceiling|pi|square|cos|power|tan|cot|radians)\b',
+      name: support.function.math.sql}
+    - {comment: 'Metadata Functions: https://msdn.microsoft.com/en-us/library/ms187812.aspx',
+      match: '(?i)@@\b(procid)|\b(index_col|app_name|indexkey_property|applock_mode|indexproperty|applock_test|next
+        value for|assemblyproperty|object_definition|col_length|object_id|col_name|object_name|columnproperty|object_schema_name|database_principal_id|objectproperty|databasepropertyex|objectpropertyex|db_id|original_db_name|db_name|parsename|file_id|schema_id|file_idex|schema_name|file_name|scope_identity|filegroup_id|serverproperty|filegroup_name|stats_date|filegroupproperty|type_id|fileproperty|type_name|fulltextcatalogproperty|typeproperty|fulltextserviceproperty)\b',
+      name: support.function.metadata.sql}
+    - {comment: 'Security Functions: https://msdn.microsoft.com/en-us/library/ms186236.aspx',
+      match: '(?i)\b(certencoded|pwdcompare|certprivatekey|pwdencrypt|current_user|schema_id|database_principal_id|schema_name|session_user|suser_id|suser_sid|has_perms_by_name|suser_sname|is_member|system_user|is_rolemember|suser_name|is_srvrolemember|user_id|original_login|user_name|permissions)\b',
+      name: support.function.security.sql}
+    - {comment: 'String Functions: https://msdn.microsoft.com/en-us/library/ms181984.aspx',
+      match: '(?i)\b(ascii|ltrim|soundex|char|nchar|space|charindex|patindex|str|concat|quotename|stuff|difference|replace|substring|format|replicate|unicode|left|reverse|upper|len|right|lower|rtrim)\b',
+      name: support.function.string.sql}
+    - {comment: 'System Functions: https://msdn.microsoft.com/en-us/library/ms187786.aspx',
+      match: '(?i)\$\b(partition)|@@\b(error|identity|pack_received|rowcount|trancount)|\b(error_severity|error_state|formatmessage|getansinull|get_filestream_transaction_context|host_id|binary_checksum|host_name|checksum|isnull|connectionproperty|isnumeric|context_info|min_active_rowversion|current_request_id|newid|error_line|newsequentialid|error_message|rowcount_big|error_number|xact_state|error_procedure)\b',
+      name: support.function.system.sql}
+    - {comment: 'System Statistical Functions: https://msdn.microsoft.com/en-us/library/ms177520.aspx',
+      match: '(?i)@@\b(connections|pack_received|cpu_busy|pack_sent|timeticks|idle|total_errors|io_busy|total_read|packet_errors|total_write)\b',
+      name: support.function.system-stats.sql}
+    - {comment: 'Text and image Functions: https://msdn.microsoft.com/en-us/library/ms188353.aspx',
+      match: '(?i)\b(patindex|textvalid|textptr)\b', name: support.function.text_image.sql}
+  tsql_alias_as:
+    captures:
+      '1': {name: keyword.alias-as.other.sql}
+      '2': {name: entity.name.alias.sql}
+    match: (?<=[\w])\s+(as)\s+(\w+)
+    name: meta.alias-as.sql
+  tsql_comments:
+    patterns:
+    - captures:
+        '1': {name: punctuation.definition.comment.sql}
+      match: (--).*$\n?
+      name: comment.line.double-dash.sql
+    - begin: /\*
+      captures:
+        '0': {name: punctuation.definition.comment.sql}
+      end: \*/
+      name: comment.block.c
+  tsql_label_goto:
+    captures:
+      '1': {name: support.goto_label.sql}
+    comment: goto Label
+    match: (?<=goto)\s+(\w+)
+  tsql_regexps:
+    patterns:
+    - begin: /(?=\S.*/)
+      beginCaptures:
+        '0': {name: punctuation.definition.string.begin.sql}
+      end: /
+      endCaptures:
+        '0': {name: punctuation.definition.string.end.sql}
+      name: string.regexp.sql
+      patterns:
+      - {include: '#tsql_string_interpolation'}
+      - {match: \\/, name: constant.character.escape.slash.sql}
+    - begin: '%r\{'
+      beginCaptures:
+        '0': {name: punctuation.definition.string.begin.sql}
+      comment: We should probably handle nested bracket pairs!?! -- Allan
+      end: \}
+      endCaptures:
+        '0': {name: punctuation.definition.string.end.sql}
+      name: string.regexp.modr.sql
+      patterns:
+      - {include: '#tsql_string_interpolation'}
+
+  tsql_string_escape: {match: \\., name: constant.character.escape.sql}
+
+  tsql_string_interpolation:
+    captures:
+      '1': {name: punctuation.definition.string.end.sql}
+    match: (#\{)([^\}]*)(\})
+    name: string.interpolated.sql
+
+  tsql_strings:
+    patterns:
+    ## Single quote
+    # - captures:
+    #     '1': {name: punctuation.definition.string.begin.sql}
+    #     '3': {name: punctuation.definition.string.end.sql}
+    #   comment: this is faster than the next begin/end rule since sub-pattern will
+    #     match till end-of-line and SQL files tend to have very long lines.
+    #   match: (')[^'\\]*(')
+    #   name: string.quoted.single.sql
+    #   patterns:
+    #   - include: '#biml-expression-block'
+
+    - begin: ''''
+      beginCaptures:
+        '0': {name: punctuation.definition.string.begin.sql}
+      end: ''''
+      endCaptures:
+        '0': {name: punctuation.definition.string.end.sql}
+      name: string.quoted.single.sql
+      patterns:
+      - {include: '#biml-expression-block'}
+      - {include: '#tsql_string_escape'}
+
+    ## Backticks
+    # - captures:
+    #     '1': {name: punctuation.definition.string.begin.sql}
+    #     '3': {name: punctuation.definition.string.end.sql}
+    #   comment: this is faster than the next begin/end rule since sub-pattern will
+    #     match till end-of-line and SQL files tend to have very long lines.
+    #   match: (`)[^`\\]*(`)
+    #   name: string.quoted.other.backtick.sql
+    #   patterns:
+    #   - include: '#biml-expression-block'
+
+    - begin: '`'
+      beginCaptures:
+        '0': {name: punctuation.definition.string.begin.sql}
+      end: '`'
+      endCaptures:
+        '0': {name: punctuation.definition.string.end.sql}
+      name: string.quoted.other.backtick.sql
+      patterns:
+      - {include: '#biml-expression-block'}
+      - {include: '#tsql_string_escape'}
+
+    - captures:
+        '1': {name: punctuation.definition.string.begin.sql}
+        '3': {name: punctuation.definition.string.end.sql}
+      comment: this is faster than the next begin/end rule since sub-pattern will
+        match till end-of-line and SQL files tend to have very long lines.
+      match: (")[^"#]*(")
+      name: string.quoted.double.sql
+
+    - begin: '"'
+      beginCaptures:
+        '0': {name: punctuation.definition.string.begin.sql}
+      end: '"'
+      endCaptures:
+        '0': {name: punctuation.definition.string.end.sql}
+      name: string.quoted.double.sql
+      patterns:
+      - {include: '#biml-expression-block'}
+      - {include: '#tsql_string_interpolation'}
+
+    - begin: '%\{'
+      beginCaptures:
+        '0': {name: punctuation.definition.string.begin.sql}
+      end: \}
+      endCaptures:
+        '0': {name: punctuation.definition.string.end.sql}
+      name: string.other.quoted.brackets.sql
+      patterns:
+      - {include: '#biml-expression-block'}
+      - {include: '#tsql_string_interpolation'}
+
+  tsql_table_alias:
+    begin: (?<=from|join)\s*
+    end: (?=\n|,|with|outer|inner|left|right|cross|where|join|on)
+    name: meta.alias.sql
+    patterns:
+    - captures:
+        '2': {name: variable.table.sql}
+        '3': {name: string.temp.table.sql}
+        '4': {name: keyword.alias-as.other.sql}
+        '5': {name: entity.name.alias.sql}
+      match: ((@\w+)|(#{1,2}\w+)|[\w\.\]\[]+)\s+(as\s+)?(?!=\n|,|with|outer|inner|left|right|cross|where|join|on)(\w+)
+    - {include: '#tsql_comments'}
+
+
+...
