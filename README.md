@@ -1,7 +1,8 @@
 # subiml
-Sublime Text 3 BIML Syntax Def
+BIML language definition for SublimeText. 
 
-This is a work in progress, but I'm pushing what I have, which is still fairly helpful given the sorry state of Visual Studio highlighting for Biml 
-and the high cost of Mist.
+## Installation and Use
 
-I'll be working on cleaning this up and submitting it as an official Sublime Text package soon!
+If you haven't already, [install Package Control](https://sublime.wbond.net/installation), then select `Biml` from the `Package Control: Install Package` dropdown list in the Command Palette.
+
+To set this as your default Biml syntax, open a Biml file, then select `View -> Syntax -> Open all with current extension as... -> Biml`.
